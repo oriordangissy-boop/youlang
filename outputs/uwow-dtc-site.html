@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>U-WOW Panshi System</title>
+  <style>
+    :root {
+      --ink: #111513;
+      --fog: #f3f1eb;
+      --mist: #d8ded6;
+      --moss: #435348;
+      --stone: #73766f;
+      --acid: #d7ff53;
+      --clay: #a65f43;
+      --white: #ffffff;
+      --line: rgba(17, 21, 19, .16);
+      --shadow: 0 24px 70px rgba(17, 21, 19, .18);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--fog);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input { font: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    .nav {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 20;
+      height: 68px;
+      padding: 0 28px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      color: var(--white);
+      mix-blend-mode: difference;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .wolf-mark {
+      width: 34px;
+      height: 34px;
+      border: 1px solid currentColor;
+      display: grid;
+      place-items: center;
+    }
+
+    .wolf-mark svg { width: 22px; height: 22px; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    .nav-actions {
+      display: flex;
+      justify-content: end;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lang {
+      height: 32px;
+      padding: 0 10px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-size: 11px;
+      letter-spacing: .08em;
+      opacity: .66;
+    }
+
+    .lang.active { opacity: 1; background: currentColor; }
+    .lang.active span { color: #000; }
+
+    .hero {
+      min-height: 96vh;
+      position: relative;
+      display: grid;
+      align-items: end;
+      overflow: hidden;
+      background: #111;
+      color: var(--white);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.74)),
+        linear-gradient(90deg, rgba(0,0,0,.64), rgba(0,0,0,.12) 52%, rgba(0,0,0,.55));
+      z-index: 1;
+    }
+
+    .hero img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      filter: saturate(.92) contrast(1.04);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      width: min(1480px, 100%);
+      margin: 0 auto;
+      padding: 0 28px 64px;
+      display: grid;
+      grid-template-columns: minmax(320px, 780px) minmax(260px, 420px);
+      gap: 48px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 16px;
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      opacity: .86;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 42px;
+      height: 1px;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 760px;
+      font-size: clamp(48px, 8vw, 118px);
+      line-height: .86;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .hero-copy {
+      margin: 22px 0 0;
+      max-width: 610px;
+      color: rgba(255,255,255,.78);
+      font-size: clamp(15px, 1.6vw, 18px);
+      line-height: 1.65;
+    }
+
+    .hero-panel {
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(12,14,13,.42);
+      backdrop-filter: blur(18px);
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero-panel h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+
+    .hero-panel p {
+      margin: 0;
+      color: rgba(255,255,255,.72);
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .btn {
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid currentColor;
+      background: transparent;
+      color: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .btn.primary {
+      background: var(--acid);
+      border-color: var(--acid);
+      color: #111;
+    }
+
+    .btn svg { width: 16px; height: 16px; }
+
+    .spec-strip {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid rgba(255,255,255,.2);
+      background: rgba(0,0,0,.34);
+    }
+
+    .hero-spec {
+      min-height: 94px;
+      padding: 18px 28px;
+      border-right: 1px solid rgba(255,255,255,.18);
+      display: grid;
+      align-content: center;
+      gap: 4px;
+    }
+
+    .hero-spec strong {
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1;
+    }
+
+    .hero-spec span {
+      color: rgba(255,255,255,.65);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    section {
+      padding: 82px 28px;
+    }
+
+    .wrap {
+      width: min(1480px, 100%);
+      margin: 0 auto;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(260px, 560px) minmax(260px, 520px);
+      justify-content: space-between;
+      gap: 36px;
+      align-items: end;
+      margin-bottom: 30px;
+    }
+
+    .kicker {
+      margin: 0 0 12px;
+      color: var(--moss);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      font-weight: 800;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 72px);
+      line-height: .94;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--stone);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 16px;
+    }
+
+    .material-card {
+      min-height: 560px;
+      position: relative;
+      overflow: hidden;
+      background: #151815;
+      color: var(--white);
+      display: grid;
+      align-items: end;
+    }
+
+    .material-card img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: .62;
+      filter: saturate(.8) contrast(1.05);
+    }
+
+    .material-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 25%, rgba(0,0,0,.82));
+    }
+
+    .material-copy {
+      position: relative;
+      z-index: 1;
+      padding: 28px;
+      max-width: 640px;
+    }
+
+    .material-copy h3 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 54px);
+      line-height: .95;
+      text-transform: uppercase;
+    }
+
+    .material-copy p {
+      color: rgba(255,255,255,.76);
+      line-height: 1.65;
+    }
+
+    .metric-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .metric {
+      min-height: 130px;
+      padding: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      display: grid;
+      align-content: space-between;
+    }
+
+    .metric strong {
+      font-size: clamp(32px, 4vw, 54px);
+      line-height: .9;
+    }
+
+    .metric span {
+      color: var(--stone);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .collection {
+      background: #151815;
+      color: var(--white);
+    }
+
+    .collection .kicker { color: var(--acid); }
+    .collection .section-head p { color: rgba(255,255,255,.66); }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .product {
+      min-height: 520px;
+      background: #222620;
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      align-items: end;
+      transition: transform .24s ease;
+    }
+
+    .product:hover { transform: translateY(-5px); }
+
+    .product img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(.92) contrast(1.02);
+      transition: transform .5s ease;
+    }
+
+    .product:hover img { transform: scale(1.035); }
+
+    .product::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 34%, rgba(0,0,0,.82));
+    }
+
+    .product-info {
+      position: relative;
+      z-index: 1;
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .product-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 16px;
+    }
+
+    .product h3 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.08;
+      text-transform: uppercase;
+    }
+
+    .price {
+      color: var(--acid);
+      font-weight: 900;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .tag {
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.78);
+      padding: 6px 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .systems {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .system {
+      background: var(--white);
+      border: 1px solid var(--line);
+      min-height: 280px;
+      padding: 22px;
+      display: grid;
+      align-content: space-between;
+      gap: 28px;
+    }
+
+    .system-index {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--ink);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .system h3 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .system p {
+      margin: 10px 0 0;
+      color: var(--stone);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .editorial {
+      padding-top: 0;
+    }
+
+    .editorial-grid {
+      min-height: 620px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .editorial-copy {
+      padding: clamp(28px, 5vw, 70px);
+      display: grid;
+      align-content: center;
+      gap: 22px;
+    }
+
+    .editorial-copy h2 {
+      max-width: 620px;
+    }
+
+    .editorial-copy p {
+      max-width: 560px;
+      color: rgba(255,255,255,.68);
+      line-height: 1.7;
+    }
+
+    .editorial-media {
+      min-height: 520px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .editorial-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(.9) contrast(1.04);
+    }
+
+    footer {
+      padding: 34px 28px;
+      background: var(--ink);
+      color: rgba(255,255,255,.62);
+      border-top: 1px solid rgba(255,255,255,.12);
+    }
+
+    .footer-inner {
+      width: min(1480px, 100%);
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .source-note a { text-decoration: underline; text-underline-offset: 3px; }
+
+    [data-i18n] { transition: opacity .12s ease; }
+
+    @media (max-width: 1120px) {
+      .hero-content,
+      .section-head,
+      .tech-grid,
+      .editorial-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .product-grid { grid-template-columns: repeat(2, 1fr); }
+      .systems { grid-template-columns: 1fr; }
+      .spec-strip { grid-template-columns: repeat(2, 1fr); }
+      .nav { grid-template-columns: 1fr auto; }
+      .nav-links { display: none; }
+    }
+
+    @media (max-width: 680px) {
+      .nav {
+        height: 62px;
+        padding: 0 16px;
+      }
+
+      .brand span { display: none; }
+      .nav-actions { gap: 6px; }
+      .lang { height: 30px; padding: 0 8px; }
+      .hero-content { padding: 0 18px 34px; gap: 28px; }
+      .spec-strip { grid-template-columns: 1fr; }
+      .hero-spec { min-height: 78px; padding: 14px 18px; }
+      section { padding: 58px 18px; }
+      .product-grid { grid-template-columns: 1fr; }
+      .product { min-height: 500px; }
+      .material-card { min-height: 520px; }
+      .footer-inner { align-items: start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#top" aria-label="U-WOW home">
+      <span class="wolf-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m4 8 4-5 4 4 4-4 4 5-3 12H7L4 8Z"></path>
+          <path d="m9 13 3 3 3-3"></path>
+        </svg>
+      </span>
+      <span>U-WOW</span>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#tech" data-i18n="navTech">Fabric</a>
+      <a href="#collection" data-i18n="navCollection">Shells</a>
+      <a href="#system" data-i18n="navSystem">System</a>
+    </nav>
+    <div class="nav-actions" aria-label="Language">
+      <button class="lang active" type="button" data-lang="zh"><span>中文</span></button>
+      <button class="lang" type="button" data-lang="en"><span>EN</span></button>
+      <button class="lang" type="button" data-lang="de"><span>DE</span></button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <img src="https://images.pexels.com/photos/19404760/pexels-photo-19404760.jpeg?auto=compress&cs=tinysrgb&w=2400" alt="Outdoor model wearing black shell jacket in mountains">
+      <div class="hero-content">
+        <div>
+          <p class="eyebrow" data-i18n="heroEyebrow">Military-grade light luxury outdoor</p>
+          <h1 data-i18n="heroTitle">Panshi four-season tactical shell</h1>
+          <p class="hero-copy" data-i18n="heroCopy">0-fluorine nano membrane meets aerospace-grade polyimide warmth. Built for alpine weather, city travel, and the kind of customer who reads the spec sheet before buying the logo.</p>
+          <div class="cta-row">
+            <a class="btn primary" href="#collection">
+              <span data-i18n="shopNow">View collection</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+            </a>
+            <a class="btn" href="#tech" data-i18n="readTech">Read fabric proof</a>
+          </div>
+        </div>
+
+        <aside class="hero-panel">
+          <h2 data-i18n="panelTitle">One system. Four climates.</h2>
+          <p data-i18n="panelCopy">Wear the shell alone in rain, the liner alone in dry cold, or lock both with a magnetic connection system for a winter tactical coat.</p>
+        </aside>
+      </div>
+
+      <div class="spec-strip" aria-label="Technical highlights">
+        <div class="hero-spec"><strong>20K</strong><span data-i18n="specWater">Waterproof mmH2O</span></div>
+        <div class="hero-spec"><strong>20K</strong><span data-i18n="specBreath">Breathability g/m2/24h</span></div>
+        <div class="hero-spec"><strong>76.5%</strong><span data-i18n="specWarm">PI warmth retention</span></div>
+        <div class="hero-spec"><strong>0F</strong><span data-i18n="specFluor">Fluorine-free membrane</span></div>
+      </div>
+    </section>
+
+    <section id="tech">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="kicker" data-i18n="techKicker">Fabric advantage</p>
+            <h2 data-i18n="techTitle">The product page leads with proof.</h2>
+          </div>
+          <p data-i18n="techCopy">For a premium outdoor DTC site, the fabric story should feel clinical and desirable at once: hard numbers, restrained typography, close-up utility language, and no overdone sci-fi visuals.</p>
+        </div>
+
+        <div class="tech-grid">
+          <article class="material-card">
+            <img src="https://images.pexels.com/photos/6778713/pexels-photo-6778713.jpeg?auto=compress&cs=tinysrgb&w=1800" alt="Woman in black windbreaker jacket standing in mountain landscape">
+            <div class="material-copy">
+              <p class="eyebrow" data-i18n="materialEyebrow">0-fluorine nano membrane</p>
+              <h3 data-i18n="materialTitle">Dry outside. Warm inside. No chemical compromise.</h3>
+              <p data-i18n="materialCopy">Position the fabric like a trust asset: waterproof, breathable, washable, and aligned with European environmental expectations.</p>
+            </div>
+          </article>
+
+          <div class="metric-stack">
+            <article class="metric"><strong>20,000+</strong><span data-i18n="metric1">mmH2O hydrostatic head for heavy rain and ridge wind.</span></article>
+            <article class="metric"><strong>&gt;98%</strong><span data-i18n="metric2">performance retention after five wash cycles in internal benchmark language.</span></article>
+            <article class="metric"><strong>LOI 38%</strong><span data-i18n="metric3">polyimide liner story: flame resistance, warmth, and aerospace material credibility.</span></article>
+            <article class="metric"><strong>Class 1</strong><span data-i18n="metric4">skin-contact positioning for a softer luxury layer story.</span></article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="collection" id="collection">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="kicker" data-i18n="collectionKicker">First visual range</p>
+            <h2 data-i18n="collectionTitle">Shell jackets with real outdoor texture.</h2>
+          </div>
+          <p data-i18n="collectionCopy">These are placeholder lifestyle images for judging the independent-site direction. The final shoot should use U-WOW garments, iPhone-direct realism, natural weather, and black/white models across alpine and urban conditions.</p>
+        </div>
+
+        <div class="product-grid">
+          <article class="product">
+            <img src="https://images.pexels.com/photos/7625031/pexels-photo-7625031.jpeg?auto=compress&cs=tinysrgb&w=1400" alt="Black woman hiking in white outdoor jacket">
+            <div class="product-info">
+              <div class="product-top"><h3 data-i18n="p1">Panshi Alpine Shell</h3><span class="price">EUR 680</span></div>
+              <div class="tags"><span class="tag">0F membrane</span><span class="tag">Black model</span><span class="tag">Forest</span></div>
+            </div>
+          </article>
+          <article class="product">
+            <img src="https://images.pexels.com/photos/2101881/pexels-photo-2101881.jpeg?auto=compress&cs=tinysrgb&w=1400" alt="White male hiker in black jacket near snowy mountains">
+            <div class="product-info">
+              <div class="product-top"><h3 data-i18n="p2">Summit Hard Shell</h3><span class="price">EUR 720</span></div>
+              <div class="tags"><span class="tag">20K waterproof</span><span class="tag">White model</span><span class="tag">Snowline</span></div>
+            </div>
+          </article>
+          <article class="product">
+            <img src="https://images.pexels.com/photos/6778717/pexels-photo-6778717.jpeg?auto=compress&cs=tinysrgb&w=1400" alt="Woman in windbreaker before snow-capped mountains">
+            <div class="product-info">
+              <div class="product-top"><h3 data-i18n="p3">Ridge Windbreaker</h3><span class="price">EUR 540</span></div>
+              <div class="tags"><span class="tag">Light shell</span><span class="tag">Travel</span><span class="tag">Windproof</span></div>
+            </div>
+          </article>
+          <article class="product">
+            <img src="https://images.pexels.com/photos/18809971/pexels-photo-18809971.jpeg?auto=compress&cs=tinysrgb&w=1400" alt="Woman in black jacket on trail near mountain">
+            <div class="product-info">
+              <div class="product-top"><h3 data-i18n="p4">Storm Trail Parka</h3><span class="price">EUR 760</span></div>
+              <div class="tags"><span class="tag">Long cut</span><span class="tag">Trail</span><span class="tag">Rain ready</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="system">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="kicker" data-i18n="systemKicker">Four-season system</p>
+            <h2 data-i18n="systemTitle">Not one jacket. A wearing architecture.</h2>
+          </div>
+          <p data-i18n="systemCopy">The site should make the modular value obvious before the user reaches product detail pages. Shell, liner, and magnetic connection are the hero narrative.</p>
+        </div>
+        <div class="systems">
+          <article class="system">
+            <span class="system-index">01</span>
+            <div><h3 data-i18n="s1">Shell</h3><p data-i18n="s1copy">0-fluorine nano membrane for wind, rain, and cleaner material positioning.</p></div>
+          </article>
+          <article class="system">
+            <span class="system-index">02</span>
+            <div><h3 data-i18n="s2">Inner</h3><p data-i18n="s2copy">Polyimide warmth layer for light insulation, flame resistance, and soft contact.</p></div>
+          </article>
+          <article class="system">
+            <span class="system-index">03</span>
+            <div><h3 data-i18n="s3">Mag-lock</h3><p data-i18n="s3copy">Fast magnetic attachment turns two layers into a winter tactical coat.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="editorial">
+      <div class="wrap">
+        <div class="editorial-grid">
+          <div class="editorial-copy">
+            <p class="kicker" data-i18n="editKicker">Campaign direction</p>
+            <h2 data-i18n="editTitle">Less AI gloss. More weather, breath, and hand-held truth.</h2>
+            <p data-i18n="editCopy">The visual language should feel like a premium iPhone field shoot: imperfect air, real skin, visible fabric creases, practical poses, and enough negative space for multilingual commerce.</p>
+            <a class="btn primary" href="#collection" data-i18n="editButton">Review styles</a>
+          </div>
+          <div class="editorial-media">
+            <img src="https://images.unsplash.com/photo-1708739237236-8bb32a163c68?auto=format&fit=crop&fm=jpg&q=70&w=1800" alt="Outdoor winter jacket model in rocky landscape">
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <strong>U-WOW / Panshi System</strong>
+      <span class="source-note" data-i18n="footerNote">Prototype imagery from Pexels and Unsplash. Replace with owned campaign assets before launch.</span>
+    </div>
+  </footer>
+
+  <script>
+    const copy = {
+      zh: {
+        navTech: "面料", navCollection: "款式", navSystem: "系统",
+        heroEyebrow: "军工级轻奢户外", heroTitle: "磐石四季战术系统",
+        heroCopy: "0氟纳米膜，融合航天级聚酰亚胺保暖层。为高山天气、城市通勤和真正会看参数的高端用户而生。",
+        shopNow: "查看系列", readTech: "查看面料数据", panelTitle: "一套系统，四季穿法。",
+        panelCopy: "雨天单穿外壳，干冷单穿内胆，严冬用磁吸连接系统组合成重型战术防寒外套。",
+        specWater: "静水压 mmH2O", specBreath: "透气 g/m2/24h", specWarm: "PI 保暖率", specFluor: "0氟环保纳米膜",
+        techKicker: "面料优势", techTitle: "产品页先讲证据，再讲美学。",
+        techCopy: "高端户外独立站的面料叙事要同时理性和高级：硬数据、克制字体、实用场景语言，不做过度科幻视觉。",
+        materialEyebrow: "0氟纳米膜", materialTitle: "外层抗雨，内层保暖，不向化学残留妥协。",
+        materialCopy: "把面料定位成信任资产：防水、透气、耐水洗，并贴合欧洲市场对环保材料的期待。",
+        metric1: "20,000+ mmH2O 静水压，应对强雨和山脊横风。", metric2: "五次水洗后性能保持率用于强化长期耐用叙事。", metric3: "聚酰亚胺内胆故事：阻燃、保暖、航天材料可信度。", metric4: "亲肤等级让内胆同时具备轻奢与安全感。",
+        collectionKicker: "首版视觉款式", collectionTitle: "先用真实户外质感撑起冲锋衣系列。",
+        collectionCopy: "这些是用于判断独立站方向的生活方式占位图。最终拍摄建议使用 U-WOW 自有服装，保留 iPhone 直出感、自然天气、黑人/白人模特和高山/城市双场景。",
+        p1: "磐石高山外壳", p2: "峰线硬壳冲锋衣", p3: "山脊轻量风壳", p4: "暴雨长版派克",
+        systemKicker: "四季系统", systemTitle: "不是一件衣服，是一套穿着架构。",
+        systemCopy: "用户进入详情页前，就应该理解模块化价值。外壳、内胆、磁吸连接系统是首屏之后最重要的产品叙事。",
+        s1: "外壳", s1copy: "0氟纳米膜负责防风、防雨和更清洁的材料定位。", s2: "内胆", s2copy: "聚酰亚胺保暖层兼具轻量、阻燃和亲肤触感。", s3: "磁吸连接", s3copy: "快速组合外壳与内胆，一秒切换冬季战术防寒外套。",
+        editKicker: "大片方向", editTitle: "少一点 AI 油光，多一点天气、呼吸和手持真实感。",
+        editCopy: "视觉语言建议接近高端 iPhone 户外实拍：空气不完美、皮肤真实、面料有褶皱、动作实用，并为多语言电商留出负空间。",
+        editButton: "查看款式", footerNote: "原型图片来自 Pexels 与 Unsplash。正式上线前请替换为自有拍摄资产。"
+      },
+      en: {
+        navTech: "Fabric", navCollection: "Shells", navSystem: "System",
+        heroEyebrow: "Military-grade light luxury outdoor", heroTitle: "Panshi four-season tactical shell",
+        heroCopy: "0-fluorine nano membrane meets aerospace-grade polyimide warmth. Built for alpine weather, city travel, and customers who read the spec sheet before buying the logo.",
+        shopNow: "View collection", readTech: "Read fabric proof", panelTitle: "One system. Four climates.",
+        panelCopy: "Wear the shell alone in rain, the liner alone in dry cold, or lock both with a magnetic connection system for a winter tactical coat.",
+        specWater: "Waterproof mmH2O", specBreath: "Breathability g/m2/24h", specWarm: "PI warmth retention", specFluor: "Fluorine-free membrane",
+        techKicker: "Fabric advantage", techTitle: "The product page leads with proof.",
+        techCopy: "For a premium outdoor DTC site, the fabric story should feel clinical and desirable at once: hard numbers, restrained typography, utility language, and no overdone sci-fi visuals.",
+        materialEyebrow: "0-fluorine nano membrane", materialTitle: "Dry outside. Warm inside. No chemical compromise.",
+        materialCopy: "Position the fabric like a trust asset: waterproof, breathable, washable, and aligned with European environmental expectations.",
+        metric1: "mmH2O hydrostatic head for heavy rain and ridge wind.", metric2: "performance retention after five wash cycles in benchmark language.", metric3: "polyimide liner story: flame resistance, warmth, and aerospace material credibility.", metric4: "skin-contact positioning for a softer luxury layer story.",
+        collectionKicker: "First visual range", collectionTitle: "Shell jackets with real outdoor texture.",
+        collectionCopy: "These are placeholder lifestyle images for judging the independent-site direction. The final shoot should use U-WOW garments, iPhone-direct realism, natural weather, and black/white models across alpine and urban conditions.",
+        p1: "Panshi Alpine Shell", p2: "Summit Hard Shell", p3: "Ridge Windbreaker", p4: "Storm Trail Parka",
+        systemKicker: "Four-season system", systemTitle: "Not one jacket. A wearing architecture.",
+        systemCopy: "The site should make modular value obvious before product detail pages. Shell, liner, and magnetic connection are the hero narrative.",
+        s1: "Shell", s1copy: "0-fluorine nano membrane for wind, rain, and cleaner material positioning.", s2: "Inner", s2copy: "Polyimide warmth layer for light insulation, flame resistance, and soft contact.", s3: "Mag-lock", s3copy: "Fast magnetic attachment turns two layers into a winter tactical coat.",
+        editKicker: "Campaign direction", editTitle: "Less AI gloss. More weather, breath, and hand-held truth.",
+        editCopy: "The visual language should feel like a premium iPhone field shoot: imperfect air, real skin, visible fabric creases, practical poses, and enough negative space for multilingual commerce.",
+        editButton: "Review styles", footerNote: "Prototype imagery from Pexels and Unsplash. Replace with owned campaign assets before launch."
+      },
+      de: {
+        navTech: "Material", navCollection: "Jacken", navSystem: "System",
+        heroEyebrow: "Military-grade Light Luxury Outdoor", heroTitle: "Panshi Vier-Jahreszeiten System",
+        heroCopy: "0-Fluor-Nanomembran trifft auf Polyimid-Wärme aus der Luft- und Raumfahrt. Entwickelt für alpines Wetter, urbane Wege und Käufer, die zuerst die Daten lesen.",
+        shopNow: "Kollektion ansehen", readTech: "Materialdaten", panelTitle: "Ein System. Vier Klimazonen.",
+        panelCopy: "Die Shell im Regen, der Liner bei trockener Kälte, oder beide per Magnetverbindung als Wintermantel.",
+        specWater: "Wasserdicht mmH2O", specBreath: "Atmungsaktiv g/m2/24h", specWarm: "PI Wärmerückhalt", specFluor: "Fluorfreie Membran",
+        techKicker: "Materialvorteil", techTitle: "Die Produktseite beginnt mit Beweisen.",
+        techCopy: "Eine Premium-Outdoor-DTC-Seite braucht Daten und Begehren zugleich: klare Zahlen, ruhige Typografie, praktische Sprache und keine übertriebene Sci-Fi-Optik.",
+        materialEyebrow: "0-Fluor-Nanomembran", materialTitle: "Außen trocken. Innen warm. Ohne chemischen Kompromiss.",
+        materialCopy: "Das Material als Vertrauenswert positionieren: wasserdicht, atmungsaktiv, waschbeständig und passend zu europäischen Umweltansprüchen.",
+        metric1: "mmH2O Wassersäule für Starkregen und Wind am Grat.", metric2: "Leistungserhalt nach fünf Waschgängen als Haltbarkeitsbeweis.", metric3: "Polyimid-Liner: Flammschutz, Wärme und glaubwürdiges Hightech-Material.", metric4: "Hautkontakt-Positionierung für eine weichere Luxury-Layer Story.",
+        collectionKicker: "Erste visuelle Range", collectionTitle: "Shell-Jacken mit echter Outdoor-Textur.",
+        collectionCopy: "Diese Bilder dienen als Platzhalter für die Stilrichtung. Das finale Shooting sollte U-WOW Kleidung, iPhone-Realismus, natürliches Wetter sowie schwarze und weiße Models in alpinen und urbanen Szenen zeigen.",
+        p1: "Panshi Alpine Shell", p2: "Summit Hard Shell", p3: "Ridge Windbreaker", p4: "Storm Trail Parka",
+        systemKicker: "Vier-Jahreszeiten System", systemTitle: "Nicht eine Jacke. Eine Trage-Architektur.",
+        systemCopy: "Der modulare Wert muss vor der Produktdetailseite klar werden. Shell, Liner und Magnetverbindung sind die zentrale Story.",
+        s1: "Shell", s1copy: "0-Fluor-Nanomembran für Wind, Regen und eine sauberere Materialpositionierung.", s2: "Inner", s2copy: "Polyimid-Wärmelage für leichte Isolation, Flammschutz und weichen Kontakt.", s3: "Mag-lock", s3copy: "Schnelle Magnetverbindung macht aus zwei Lagen einen Winter-Tactical-Coat.",
+        editKicker: "Kampagnenrichtung", editTitle: "Weniger AI-Glanz. Mehr Wetter, Atem und Handheld-Wahrheit.",
+        editCopy: "Die Bildsprache sollte wie ein hochwertiger iPhone-Field-Shoot wirken: echte Haut, sichtbare Falten, praktische Posen und Raum für mehrsprachigen Commerce.",
+        editButton: "Styles ansehen", footerNote: "Prototypbilder von Pexels und Unsplash. Vor Launch durch eigene Kampagnenbilder ersetzen."
+      }
+    };
+
+    const buttons = [...document.querySelectorAll(".lang")];
+    const nodes = [...document.querySelectorAll("[data-i18n]")];
+
+    function setLanguage(lang) {
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
+      buttons.forEach((button) => button.classList.toggle("active", button.dataset.lang === lang));
+      nodes.forEach((node) => {
+        const key = node.dataset.i18n;
+        if (copy[lang][key]) node.textContent = copy[lang][key];
+      });
+    }
+
+    buttons.forEach((button) => button.addEventListener("click", () => setLanguage(button.dataset.lang)));
+    setLanguage("zh");
+  </script>
+</body>
+</html>
